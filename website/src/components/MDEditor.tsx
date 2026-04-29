@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import TagInput from "./TagInput";
 
 interface MDEditorProps {
   initialTitle?: string;
@@ -30,21 +31,8 @@ export default function MDEditor({
 }: MDEditorProps) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
-  const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialTags);
   const [published, setPublished] = useState(initialPublished);
-
-  const addTag = () => {
-    const t = tagInput.trim();
-    if (t && !tags.includes(t)) {
-      setTags([...tags, t]);
-    }
-    setTagInput("");
-  };
-
-  const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
-  };
 
   const excerpt = content
     .replace(/[#*`\[\]]/g, "")
@@ -78,37 +66,7 @@ export default function MDEditor({
       </div>
 
       {/* Tags */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-1 text-xs font-mono px-2 py-1 border border-accent/20 text-accent/80 rounded"
-          >
-            #{tag}
-            <button
-              onClick={() => removeTag(tag)}
-              className="hover:text-red-400 ml-0.5"
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addTag();
-              }
-            }}
-            placeholder="add tag"
-            className="bg-transparent border border-white/10 rounded px-2 py-1 text-xs font-mono text-foreground placeholder:text-muted/40 focus:outline-none focus:border-accent/50 w-24"
-          />
-        </div>
-      </div>
+      <TagInput tags={tags} onChange={setTags} />
 
       {/* Editor + Preview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

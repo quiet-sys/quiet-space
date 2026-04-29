@@ -50,6 +50,17 @@ def init_db():
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS projects (
+            slug TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            tags TEXT NOT NULL DEFAULT '[]',
+            github_url TEXT NOT NULL DEFAULT '',
+            demo_url TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
     """)
     conn.commit()
     conn.close()
@@ -187,5 +198,68 @@ def list_articles(published_only: bool = False) -> list[dict]:
         d = dict(r)
         d["tags"] = json.loads(d["tags"])
         d["published"] = bool(d["published"])
+        result.append(d)
+    return result
+
+
+# ── Project CRUD ──
+
+def create_project(slug: str, title: str, description: str = "", tags: list[str] | None = None, github_url: str = "", demo_url: str = ""):
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO projects (slug, title, description, tags, github_url, demo_url) VALUES (?, ?, ?, ?, ?, ?)""",
+        (slug, title, description, json.dumps(tags or []), github_url, demo_url),
+    )
+    conn.commit()
+    conn.close()
+
+
+def update_project(slug: str, **kwargs):
+    conn = get_connection()
+    fields = []
+    vals = []
+    for key in ("title", "description", "tags", "github_url", "demo_url"):
+        if key in kwargs and kwargs[key] is not None:
+            if key == "tags":
+                vals.append(json.dumps(kwargs[key]))
+            else:
+                vals.append(kwargs[key])
+            fields.append(f"{key} = ?")
+    if not fields:
+        conn.close()
+        return
+    fields.append("updated_at = datetime('now')")
+    vals.append(slug)
+    conn.execute(f"UPDATE projects SET {', '.join(fields)} WHERE slug = ?", vals)
+    conn.commit()
+    conn.close()
+
+
+def delete_project(slug: str):
+    conn = get_connection()
+    conn.execute("DELETE FROM projects WHERE slug = ?", (slug,))
+    conn.commit()
+    conn.close()
+
+
+def get_project(slug: str) -> dict | None:
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM projects WHERE slug = ?", (slug,)).fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["tags"] = json.loads(d["tags"])
+    return d
+
+
+def list_projects() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("SELECT * FROM projects ORDER BY created_at DESC").fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["tags"] = json.loads(d["tags"])
         result.append(d)
     return result

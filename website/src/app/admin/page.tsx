@@ -54,6 +54,12 @@ export default function AdminPage() {
               >
                 /knowledge
               </Link>
+              <Link
+                href="/admin/projects"
+                className={`font-mono text-xs transition-colors ${pathname.startsWith("/admin/projects") ? "text-accent" : "text-muted hover:text-foreground"}`}
+              >
+                /projects
+              </Link>
             </div>
           </div>
           <Link

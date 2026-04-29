@@ -102,3 +102,55 @@ export async function uploadKnowledgeFile(file: File): Promise<{ status: string;
 export function deleteKnowledgeFile(filename: string): Promise<{ status: string }> {
   return request(`/admin/knowledge/${encodeURIComponent(filename)}`, { method: "DELETE" });
 }
+
+// ── Project API ──
+
+export interface Project {
+  slug: string;
+  title: string;
+  description: string;
+  tags: string[];
+  github_url: string;
+  demo_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export function listProjects(): Promise<{ projects: Project[] }> {
+  return request("/admin/projects");
+}
+
+export function getProject(slug: string): Promise<Project> {
+  return request(`/admin/projects/${slug}`);
+}
+
+export function createProject(data: {
+  slug: string;
+  title: string;
+  description?: string;
+  tags?: string[];
+  github_url?: string;
+  demo_url?: string;
+}): Promise<{ status: string; slug: string }> {
+  return request("/admin/projects", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateProject(
+  slug: string,
+  data: {
+    title?: string;
+    description?: string;
+    tags?: string[];
+    github_url?: string;
+    demo_url?: string;
+  }
+): Promise<{ status: string }> {
+  return request(`/admin/projects/${slug}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export function deleteProject(slug: string): Promise<{ status: string }> {
+  return request(`/admin/projects/${slug}`, { method: "DELETE" });
+}

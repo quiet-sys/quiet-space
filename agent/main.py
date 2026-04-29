@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
-from memory.store import init_db, get_or_create_session, get_history, create_article, update_article, delete_article, get_article, list_articles
+from memory.store import init_db, get_or_create_session, get_history, create_article, update_article, delete_article, get_article, list_articles, create_project, update_project, delete_project, get_project as get_project_db, list_projects
 from config import settings
 from agent import Agent
 
@@ -188,6 +188,71 @@ async def delete_knowledge(filename: str):
         raise HTTPException(status_code=404, detail="file not found")
     path.unlink()
     agent.rag.reindex()
+    return {"status": "ok"}
+
+
+# ── Project Admin API ──
+
+
+class ProjectCreate(BaseModel):
+    slug: str
+    title: str
+    description: str = ""
+    tags: list[str] = []
+    github_url: str = ""
+    demo_url: str = ""
+
+
+class ProjectUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    tags: list[str] | None = None
+    github_url: str | None = None
+    demo_url: str | None = None
+
+
+@app.get("/admin/projects")
+async def get_projects():
+    return {"projects": list_projects()}
+
+
+@app.get("/admin/projects/{slug}")
+async def get_project_by_slug(slug: str):
+    proj = get_project_db(slug)
+    if not proj:
+        raise HTTPException(status_code=404, detail="project not found")
+    return proj
+
+
+@app.post("/admin/projects")
+async def create_project_endpoint(req: ProjectCreate):
+    if not req.slug or not req.slug.strip():
+        raise HTTPException(status_code=400, detail="slug cannot be empty")
+    if get_project_db(req.slug):
+        raise HTTPException(status_code=409, detail="slug already exists")
+    create_project(
+        slug=req.slug, title=req.title, description=req.description,
+        tags=req.tags, github_url=req.github_url, demo_url=req.demo_url,
+    )
+    return {"status": "ok", "slug": req.slug}
+
+
+@app.put("/admin/projects/{slug}")
+async def update_project_endpoint(slug: str, req: ProjectUpdate):
+    if not get_project_db(slug):
+        raise HTTPException(status_code=404, detail="project not found")
+    update_project(
+        slug=slug, title=req.title, description=req.description,
+        tags=req.tags, github_url=req.github_url, demo_url=req.demo_url,
+    )
+    return {"status": "ok"}
+
+
+@app.delete("/admin/projects/{slug}")
+async def delete_project_endpoint(slug: str):
+    if not get_project_db(slug):
+        raise HTTPException(status_code=404, detail="project not found")
+    delete_project(slug)
     return {"status": "ok"}
 
 
