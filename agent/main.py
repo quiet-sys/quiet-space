@@ -7,8 +7,10 @@ from sse_starlette.sse import EventSourceResponse
 from memory.store import init_db, get_or_create_session, get_history, create_article, update_article, delete_article, get_article, list_articles, create_project, update_project, delete_project, get_project as get_project_db, list_projects
 from config import settings
 from agent import Agent
+from resource_generator import ResourceGenerator
 
 agent = Agent()
+resource_generator = ResourceGenerator(agent.rag)
 
 
 @asynccontextmanager
@@ -39,6 +41,15 @@ class ChatResponse(BaseModel):
     response: str
 
 
+class ResourceGenerateRequest(BaseModel):
+    topic: str
+    learning_goal: str = ""
+    learner_level: str = ""
+    preferred_style: str = ""
+    duration: str = ""
+    structure: str = ""
+
+
 @app.post("/chat")
 async def chat(req: ChatRequest):
     session_id = get_or_create_session(req.session_id)
@@ -56,6 +67,18 @@ async def chat_stream(req: ChatRequest):
         async for chunk in agent.chat(session_id, req.message):
             yield {"event": "chunk", "data": chunk}
         yield {"event": "done", "data": session_id}
+    return EventSourceResponse(event_gen())
+
+
+@app.post("/resources/generate/stream")
+async def generate_resource_stream(req: ResourceGenerateRequest):
+    if not req.topic or not req.topic.strip():
+        raise HTTPException(status_code=400, detail="topic cannot be empty")
+
+    async def event_gen():
+        async for event in resource_generator.generate(req):
+            yield event
+
     return EventSourceResponse(event_gen())
 
 

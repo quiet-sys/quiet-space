@@ -10,9 +10,12 @@ DEFAULT_MODEL = "BAAI/bge-small-zh-v1.5"
 
 class RAGEngine:
     def __init__(self, model_name: str = DEFAULT_MODEL):
-        model_path = Path(settings.models_dir) / model_name.replace("/", "--")
+        model_path = Path(settings.models_dir) / f"models--{model_name.replace('/', '--')}"
+        snapshot_dir = model_path / "snapshots"
+        local_snapshots = sorted(snapshot_dir.iterdir()) if snapshot_dir.exists() else []
+        resolved_model = str(local_snapshots[-1]) if local_snapshots else model_name
         self.embeddings = HuggingFaceEmbeddings(
-            model_name=model_name,
+            model_name=resolved_model,
             model_kwargs={"device": "cpu"},
             cache_folder=str(Path(settings.models_dir)),
         )
