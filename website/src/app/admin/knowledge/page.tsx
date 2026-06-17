@@ -65,8 +65,7 @@ export default function KnowledgePage() {
         {backendOnline === false && (
           <div className="mb-4 p-3 rounded border border-red-500/30 bg-red-500/5">
             <p className="text-xs font-mono text-red-400">
-              ⚠ agent backend offline — run:
-              <code className="ml-2 px-2 py-0.5 bg-black/30 rounded text-red-300">conda run -n personalProject uvicorn main:app --reload --port 8000</code>
+              ⚠ agent backend offline — check pm2 logs: <code className="ml-2 px-2 py-0.5 bg-black/30 rounded text-red-300">pm2 logs agent</code>
             </p>
           </div>
         )}

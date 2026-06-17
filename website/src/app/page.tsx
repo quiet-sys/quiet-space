@@ -55,11 +55,9 @@ export default async function Home() {
           </div>
           <div className="font-mono text-sm text-foreground/80 space-y-3">
             <p>
-              {/* 在这里写你的自我介绍 */}
               a developer exploring code, AI, and building cool things.
             </p>
             <p>
-              {/* 在这里写你的自我介绍 */}
               passionate about full-stack development, AI agents, and creating
               experiences that feel both technical and delightful.
             </p>
@@ -88,7 +86,7 @@ export default async function Home() {
               github
             </a>
             <a
-              href="mailto:asdfghjkl838481088@qq.com"
+              href="mailto:contact@example.com"
               className="text-muted hover:text-accent transition-colors"
             >
               email

@@ -4,6 +4,8 @@ import { getPost, getAllPosts } from "@/lib/mdx";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   const posts = await getAllPosts();
   return posts.map((post) => ({ slug: post.slug }));

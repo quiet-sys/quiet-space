@@ -33,8 +33,8 @@ print(f"OPENAI_BASE_URL: {os.getenv('OPENAI_BASE_URL')}")
 try:
     sys.path.insert(0, os.getcwd())  # 将当前目录加入模块搜索路径
     from config import settings
-    print(f"\nconfig.settings.api_key: {'已设置' if settings.api_key else '未设置'}")
-    print(f"config.settings.base_url: {settings.base_url}")
-    print(f"config.settings.chat_model: {settings.chat_model}")
+    print(f"\nconfig.settings.openai_api_key: {'已设置' if settings.openai_api_key else '未设置'}")
+    print(f"config.settings.openai_base_url: {settings.openai_base_url}")
+    print(f"config.settings.openai_model: {settings.openai_model}")
 except Exception as e:
     print(f"\n导入 config 失败: {e}")
