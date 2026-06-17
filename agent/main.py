@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File
@@ -64,9 +65,12 @@ async def chat_stream(req: ChatRequest):
     session_id = get_or_create_session(req.session_id)
 
     async def event_gen():
-        async for chunk in agent.chat(session_id, req.message):
-            yield {"event": "chunk", "data": chunk}
-        yield {"event": "done", "data": session_id}
+        try:
+            async for chunk in agent.chat(session_id, req.message):
+                yield {"event": "chunk", "data": chunk}
+            yield {"event": "done", "data": session_id}
+        except Exception as e:
+            yield {"event": "error", "data": str(e)}
     return EventSourceResponse(event_gen())
 
 
@@ -76,8 +80,11 @@ async def generate_resource_stream(req: ResourceGenerateRequest):
         raise HTTPException(status_code=400, detail="topic cannot be empty")
 
     async def event_gen():
-        async for event in resource_generator.generate(req):
-            yield event
+        try:
+            async for event in resource_generator.generate(req):
+                yield event
+        except Exception as e:
+            yield {"event": "task_error", "data": json.dumps({"taskId": "", "message": str(e), "elapsedSeconds": 0})}
 
     return EventSourceResponse(event_gen())
 
